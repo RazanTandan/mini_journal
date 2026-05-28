@@ -5,8 +5,6 @@ import 'add_entry_screen.dart';
 import 'entry_detail_screen.dart';
 import 'journal_service.dart';
 
-// main() is now async because Firebase.initializeApp() needs to finish
-// before the app starts
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // required before any async work
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -35,8 +33,7 @@ class MyApp extends StatelessWidget {
 class HomeScreen extends StatelessWidget {
   HomeScreen({super.key});
 
-  // HomeScreen is now StatelessWidget — no local list to manage!
-  // The JournalService stream IS our state now.
+  // The JournalService stream is our state now.
   final _service = JournalService();
 
   @override
@@ -77,7 +74,7 @@ class HomeScreen extends StatelessWidget {
                 key: Key(entry['id']), // use Firestore document ID as key
                 direction: DismissDirection.endToStart,
                 confirmDismiss: (direction) async {
-                  // Delete from Firestore instead of local list
+                  // Delete from Firestore
                   await _service.deleteEntry(entry['id']);
                   return false;
                 },

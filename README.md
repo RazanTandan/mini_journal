@@ -1,17 +1,37 @@
-# minijournal
+# Mini Journal
 
-A new Flutter project.
+A simple journaling app built with Flutter and Firebase. Each journal entry is capped at 250 words.
+
+## Features
+
+- Add, view, and delete journal entries
+- 250 word limit per entry with live word counter
+- Data persists via Firebase Firestore
+- Swipe left to delete an entry
+
+## Tech Stack
+
+- Flutter
+- Firebase Firestore
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+1. Clone the repo
+2. Run `flutter pub get`
+3. Set up Firebase and run `flutterfire configure`
+4. Run the app with `flutter run`
 
-A few resources to get you started if this is your first Flutter project:
+## Project Structure
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```
+lib/
+├── main.dart               # App entry point and home screen
+├── add_entry_screen.dart   # New entry form
+├── entry_detail_screen.dart # View a single entry
+├── journal_service.dart    # All Firestore logic
+└── firebase_options.dart   # Auto-generated Firebase config
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Status
+
+Work in progress — built as a learning project.
