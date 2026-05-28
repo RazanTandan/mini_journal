@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'journal_service.dart';
 
 class AddEntryScreen extends StatefulWidget {
   const AddEntryScreen({super.key});
@@ -10,6 +11,7 @@ class AddEntryScreen extends StatefulWidget {
 class _AddEntryScreenState extends State<AddEntryScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _bodyController = TextEditingController();
+  final JournalService _service = JournalService();
   int _wordCount = 0;
 
   void _onBodyChanged(String value) {
@@ -17,6 +19,21 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     setState(() {
       _wordCount = value.trim().isEmpty ? 0 : words.length;
     });
+  }
+
+  // Save is now async because it awaits a Firestore write
+  Future<void> _saveEntry() async {
+    final now = DateTime.now();
+    final entry = {
+      'title': _titleController.text.trim().isEmpty
+          ? 'Untitled'
+          : _titleController.text.trim(),
+      'body': _bodyController.text.trim(),
+      'date': '${now.day}/${now.month}/${now.year}',
+    };
+
+    await _service.addEntry(entry); // write to Firestore
+    if (mounted) Navigator.pop(context); // go back after saving
   }
 
   @override
@@ -32,7 +49,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Entry'),
+        title: const Text('New Journal'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Padding(
@@ -67,19 +84,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: isOverLimit
-            ? null
-            : () {
-                final now = DateTime.now();
-                final entry = {
-                  'title': _titleController.text.trim().isEmpty
-                      ? 'Untitled'
-                      : _titleController.text.trim(),
-                  'body': _bodyController.text.trim(),
-                  'date': '${now.day}/${now.month}/${now.year}',
-                };
-                Navigator.pop(context, entry);
-              },
+        onPressed: isOverLimit ? null : _saveEntry,
         child: const Icon(Icons.check),
       ),
     );

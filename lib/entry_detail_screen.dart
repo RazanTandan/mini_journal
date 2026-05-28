@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class EntryDetailScreen extends StatelessWidget {
-  final Map<String, String> entry;
+  final Map<String, dynamic> entry; // was Map<String, String>
 
   const EntryDetailScreen({super.key, required this.entry});
 
@@ -9,7 +9,7 @@ class EntryDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(entry['title']!),
+        title: Text(entry['title']),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: Padding(
@@ -18,14 +18,14 @@ class EntryDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              entry['date']!,
+              entry['date'],
               style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 16),
             Text(
-              entry['body']!,
+              entry['body'],
               style: const TextStyle(fontSize: 16, height: 1.6),
             ),
           ],

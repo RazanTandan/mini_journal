@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1069206367086",
+    "project_id": "mini-journal-6d1f8",
+    "storage_bucket": "mini-journal-6d1f8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1069206367086:android:818aa3549d00ab41b96f7f",
+        "android_client_info": {
+          "package_name": "com.example.minijournal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRxz0cJwwb3ww7eVe91zzVDRpI0kZnXvY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

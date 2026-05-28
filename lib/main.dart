@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'add_entry_screen.dart';
 import 'entry_detail_screen.dart';
+import 'journal_service.dart';
 
-void main() {
+// main() is now async because Firebase.initializeApp() needs to finish
+// before the app starts
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // required before any async work
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -15,29 +22,22 @@ class MyApp extends StatelessWidget {
       title: 'Mini Journal',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(61, 23, 10, 168),
+        ),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: HomeScreen(),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatelessWidget {
+  HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final List<Map<String, String>> entries = [];
-
-  void _addEntry(Map<String, String> entry) {
-    setState(() {
-      entries.insert(0, entry);
-    });
-  }
+  // HomeScreen is now StatelessWidget — no local list to manage!
+  // The JournalService stream IS our state now.
+  final _service = JournalService();
 
   @override
   Widget build(BuildContext context) {
@@ -46,60 +46,80 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Mini Journal'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: entries.isEmpty
-          ? const Center(child: Text('No journals yet. Tap + to add one!'))
-          : ListView.builder(
-              itemCount: entries.length,
-              itemBuilder: (context, index) {
-                final entry = entries[index];
-                // REPLACE the existing Card in ListView.builder
-                return Dismissible(
-                  key: Key(entry['date']! + index.toString()),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (direction) async {
-                    setState(() {
-                      entries.removeAt(index);
-                    });
-                    return false;
-                  },
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    color: Colors.red,
-                    child: const Icon(Icons.delete, color: Colors.white),
+
+      // StreamBuilder listens to the stream and rebuilds whenever data changes
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: _service.getEntries(),
+        builder: (context, snapshot) {
+          // While waiting for first data
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // If something went wrong
+          if (snapshot.hasError) {
+            return const Center(child: Text('Something went wrong.'));
+          }
+
+          final entries = snapshot.data ?? [];
+
+          if (entries.isEmpty) {
+            return const Center(
+              child: Text('No journals yet. Tap + to add one!'),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: entries.length,
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              return Dismissible(
+                key: Key(entry['id']), // use Firestore document ID as key
+                direction: DismissDirection.endToStart,
+                confirmDismiss: (direction) async {
+                  // Delete from Firestore instead of local list
+                  await _service.deleteEntry(entry['id']);
+                  return false;
+                },
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  color: Colors.red,
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                child: Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  child: Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: ListTile(
-                      title: Text(entry['title']!),
-                      subtitle: Text(entry['date']!),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                EntryDetailScreen(entry: entry),
-                          ),
-                        );
-                      },
-                    ),
+                  child: ListTile(
+                    title: Text(entry['title']),
+                    subtitle: Text(entry['date']),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EntryDetailScreen(entry: entry),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final newEntry = await Navigator.push(
+        onPressed: () {
+          // No need for async/await here anymore
+          // AddEntryScreen saves directly to Firestore itself
+          Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddEntryScreen()),
           );
-          if (newEntry != null) {
-            _addEntry(newEntry);
-          }
         },
         child: const Icon(Icons.add),
       ),
