@@ -70,6 +70,7 @@ class HomeScreen extends StatelessWidget {
             itemCount: entries.length,
             itemBuilder: (context, index) {
               final entry = entries[index];
+
               return Dismissible(
                 key: Key(entry['id']), // use Firestore document ID as key
                 direction: DismissDirection.endToStart,
@@ -111,8 +112,6 @@ class HomeScreen extends StatelessWidget {
 
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // No need for async/await here anymore
-          // AddEntryScreen saves directly to Firestore itself
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddEntryScreen()),
